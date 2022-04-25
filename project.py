@@ -1,5 +1,6 @@
 import csv as csv
 import matplotlib as p_lib
+import statistics as stats
 from typing import TypedDict
 
 
@@ -35,14 +36,23 @@ class Student:
         self.readings = student_data["readings"]
         self.exams = student_data["exams"]
         self.project = student_data["project"]
+        self.total = None
+
+    def analyze(self):
+        exams_mean = stats.mean(self.exams)
+        labs_mean = stats.mean(self.labs)
+        quizzes_mean = stats.mean(self.quizzes)
+        readings_mean = stats.mean(self.readings)
+        project = self.project
+
 
 
 class ClassSet:
     def __init__(self):
-        self.students = list[Student]
-        self.num_students = len(self.students)
+        self.students = None
+        self.num_students = None
 
-    def populate_class(self):
+    def populate_class(self) -> None:
         file_path = str(input('Enter file path: '))
         students = []
         with open(file_path, newline='') as class_file:
@@ -57,6 +67,7 @@ class ClassSet:
                     students.append(Student(data))
 
         self.students = students
+        self.num_students = len(self.students)
 
 
 def menu() -> int:
