@@ -1,6 +1,6 @@
 import csv as csv
 import matplotlib as p_lib
-import statistics as stats
+from statistics import mean as avg
 from typing import TypedDict
 
 
@@ -38,19 +38,36 @@ class Student:
         self.project = student_data["project"]
         self.total = None
 
-    def analyze(self):
-        exams_mean = stats.mean(self.exams)
-        labs_mean = stats.mean(self.labs)
-        quizzes_mean = stats.mean(self.quizzes)
-        readings_mean = stats.mean(self.readings)
-        project = self.project
+    def analyze(self, class_d: "ClassSet"):
+        means = [avg(self.exams), avg(self.labs), avg(self.quizzes), avg(self.readings), self.project]
+        score = sum([m * w for m, w in zip(means, class_d.weights)])
 
+        if score >= 90:
+            let = 'A'
+        elif score >= 80:
+            let = 'B'
+        elif score >= 70:
+            let = 'C'
+        elif score >= 60:
+            let = 'D'
+        else:
+            let = 'F'
+
+        with open(f'{self.uin}.txt', 'w') as file_report:
+            file_report.write(f"""Exams mean: {means[0]:.1f}
+Labs mean: {means[1]:.1f}
+Quizzes mean: {means[2]:.1f}
+Reading activities mean: {means[3]:.1f}
+Score: {score:.1f}%
+Letter grade: {let}
+""")
 
 
 class ClassSet:
-    def __init__(self):
+    def __init__(self, weights: tuple[float, float, float, float, float]):
         self.students = None
         self.num_students = None
+        self.weights = weights
 
     def populate_class(self) -> None:
         file_path = str(input('Enter file path: '))
