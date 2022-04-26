@@ -42,7 +42,7 @@ class Student:
         self.project = student_data["project"]
         self.total = None
 
-    # Run analysis of student, generate report
+    # Run analysis of student, generate report (aka menu option 2)
     def analyze(self, class_d: "ClassSet"):
         means = [avg(self.exams), avg(self.labs), avg(self.quizzes), avg(self.readings), self.project]
         score = sum([m * w for m, w in zip(means, class_d.weights)])
@@ -77,7 +77,7 @@ class ClassSet:
         self.num_students = None
         self.weights = weights
 
-    # Populate Class by reading series of csv rows and creating student objects
+    # Populate Class by reading series of csv rows and creating student objects (aka menu option 1)
     def populate_class(self) -> None:
         file_path = str(input('Enter file path: '))
         students = []
