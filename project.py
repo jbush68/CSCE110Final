@@ -18,16 +18,30 @@ class StudentDict(TypedDict):
 def cast_student_dict(student) -> StudentDict or None:
     try:
         uin = str(student[0])
-        labs = [float(_) for _ in student[1:6]]
-        quizzes = [float(_) for _ in student[7:12]]
-        readings = [float(_) for _ in student[13:18]]
-        exams = [float(_) for _ in student[19:21]]
-        project = float(student[23])
+        labs = [float(_) for _ in student[1:7]]
+        quizzes = [float(_) for _ in student[7:13]]
+        readings = [float(_) for _ in student[13:19]]
+        exams = [float(_) for _ in student[19:22]]
+        project = float(student[22])
     except ValueError:
         print(f'Invalid student in file')
         return None
 
     return StudentDict(uin=uin, labs=labs, quizzes=quizzes, readings=readings, exams=exams, project=project)
+
+
+def find_student(classroom: "ClassSet") -> "Student":
+    search_uin = str(input('Enter student uin: '))
+    if not (search_uin.isnumeric() and len(search_uin) == 10):
+        print('Invalid UIN, please try again...')
+        find_student(classroom)
+    else:
+        for student in classroom.students:
+            if student.uin == search_uin:
+                return student
+        else:
+            print('Invalid UIN, please try again...')
+            find_student(classroom)
 
 
 # Define custom student class
@@ -45,16 +59,15 @@ class Student:
     # Run analysis of student, generate report (aka menu option 2)
     def analyze(self, class_d: "ClassSet"):
         means = [avg(self.exams), avg(self.labs), avg(self.quizzes), avg(self.readings), self.project]
-        score = sum([m * w for m, w in zip(means, class_d.weights)])
-        self.total = score
+        self.total = sum([m * w for m, w in zip(means, class_d.weights)])
 
-        if score >= 90:
+        if self.total >= 90:
             let = 'A'
-        elif score >= 80:
+        elif self.total >= 80:
             let = 'B'
-        elif score >= 70:
+        elif self.total >= 70:
             let = 'C'
-        elif score >= 60:
+        elif self.total >= 60:
             let = 'D'
         else:
             let = 'F'
@@ -64,7 +77,7 @@ class Student:
 Labs mean: {means[1]:.1f}
 Quizzes mean: {means[2]:.1f}
 Reading activities mean: {means[3]:.1f}
-Score: {score:.1f}%
+Score: {self.total:.1f}%
 Letter grade: {let}
 """)
 
@@ -115,14 +128,18 @@ def menu() -> int:
 
 # Main driver of the code, calls all functions from here and passes class object to whichever function requires it
 def main() -> None:
-    csce_class = ClassSet((0.15, 0.25, 0.10, 0.10, 0.10))
+    csce_class = ClassSet((0.45, 0.25, 0.10, 0.10, 0.10))
     while csce_class:
         choice = menu()
         match choice:
             case 1:
-                pass
+                csce_class.populate_class()
+                continue
             case 2:
-                pass
+                g = str(input('ent uin: '))
+                for student in csce_class.students:
+                    if student.uin == g:
+                        student.analyze(csce_class)
             case 3:
                 pass
             case 4:
@@ -133,7 +150,7 @@ def main() -> None:
                 return
             case _:
                 print('Invalid input \n')
-                main()
+                continue
 
 
 main()
