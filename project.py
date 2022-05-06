@@ -1,5 +1,6 @@
 import csv as csv
-import matplotlib as p_lib
+import numpy as np
+from matplotlib import pyplot as plt
 from statistics import mean as avg
 from typing import TypedDict
 
@@ -27,21 +28,12 @@ def cast_student_dict(student) -> StudentDict or None:
         print(f'Invalid student in file')
         return None
 
-    return StudentDict(uin=uin, labs=labs, quizzes=quizzes, readings=readings, exams=exams, project=project)
-
-
-def find_student(classroom: "ClassSet") -> "Student":
-    search_uin = str(input('Enter student uin: '))
-    if not (search_uin.isnumeric() and len(search_uin) == 10):
-        print('Invalid UIN, please try again...')
-        find_student(classroom)
-    else:
-        for student in classroom.students:
-            if student.uin == search_uin:
-                return student
-        else:
-            print('Invalid UIN, please try again...')
-            find_student(classroom)
+    return StudentDict(uin=uin,
+                       labs=labs,
+                       quizzes=quizzes,
+                       readings=readings,
+                       exams=exams,
+                       project=project)
 
 
 # Define custom student class
@@ -55,9 +47,34 @@ class Student:
         self.exams = student_data["exams"]
         self.project = student_data["project"]
         self.total = None
+        self.letter = None
+
+    def student_graphs(self):
+        for attr, val in self.__dict__.items():
+            if attr in ['uin', 'project', 'total']:
+                continue
+
+            attr = str(attr)
+            attr = attr.capitalize()
+
+            x = np.arrange(val)
+            width = 0.5
+            fig, ax = plt.subplots()
+            ax.set_xtics(x)
+            ax.set_title(attr).set_ylabel("Score").set_xlabel(f'{attr[0:-1]}')
+            data = ax.bar(x - width / 2, val, width, label=attr)
+            for i in data:
+                height = i.get_height()
+                ax.annotate('{}'.format(height),
+                            xy=(i.get_x() + i.get_width() / 2, height),
+                            xytext=(0, 2),
+                            textcoords="offset points",
+                            ha='center', va='bottom')
+
+            plt.show()
 
     # Run analysis of student, generate report (aka menu option 2)
-    def analyze(self, class_d: "ClassSet"):
+    def analyze(self, class_d: "ClassSet", to_print: bool):
         means = [avg(self.exams), avg(self.labs), avg(self.quizzes), avg(self.readings), self.project]
         self.total = sum([m * w for m, w in zip(means, class_d.weights)])
 
@@ -72,14 +89,17 @@ class Student:
         else:
             let = 'F'
 
-        with open(f'{self.uin}.txt', 'w') as file_report:
-            file_report.write(f"""Exams mean: {means[0]:.1f}
-Labs mean: {means[1]:.1f}
-Quizzes mean: {means[2]:.1f}
-Reading activities mean: {means[3]:.1f}
-Score: {self.total:.1f}%
-Letter grade: {let}
-""")
+        self.letter = let
+
+        if to_print:
+            with open(f'{self.uin}.txt', 'w') as file_report:
+                file_report.write(f"""Exams mean: {means[0]:.1f}
+    Labs mean: {means[1]:.1f}
+    Quizzes mean: {means[2]:.1f}
+    Reading activities mean: {means[3]:.1f}
+    Score: {self.total:.1f}%
+    Letter grade: {let}
+    """)
 
 
 # Define custom classroom class
@@ -107,6 +127,74 @@ class ClassSet:
 
         self.students = students
         self.num_students = len(self.students)
+
+    def find_student(self) -> Student:
+        search_uin = str(input('Enter student uin: '))
+        if not (search_uin.isnumeric() and len(search_uin) == 10):
+            print('Invalid UIN, please try again...')
+            self.find_student()
+        else:
+            for student in self.students:
+                if student.uin == search_uin:
+                    return student
+            else:
+                print('Invalid UIN, please try again...')
+                self.find_student()
+
+    def class_graphs(self):
+        let_list = []
+
+        for student in self.students:
+            if not student.letter:
+                student.analyze(self, False)
+            else:
+                let_list.append(student.letter)
+
+        final_grade_counts = [let_list.count('A'), let_list.count('B'),
+                              let_list.count('C'),
+                              let_list.count('D'), let_list.count('F')]
+        x = np.arange(len(final_grade_counts))
+        width = 0.5
+        fig, ax = plt.subplots()
+        ax.set_title("Class Letter Grades")
+        ax.set_ylabel("Number of Students")
+        ax.set_xlabel("Letter Grade")
+        a = ax.get_xticks().tolist()
+        a[1] = 'A'
+        a[2] = 'B'
+        a[3] = 'C'
+        a[4] = 'D'
+        a[5] = 'F'
+        ax.set_xticklabels(a)
+        data = ax.bar(x, final_grade_counts, width)
+        counter = 0
+        for i in data:
+            y_pos = i.get_height()
+            ax.annotate(str(f'{final_grade_counts[counter]}').format(y_pos),
+                        xy=(i.get_x() + i.get_width() / 2, y_pos),
+                        xytext=(0, 5),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+            counter += 1
+        plt.show()
+        
+    def class_pie(self):
+        let_list = []
+        for student in self.students:
+            if not student.letter:
+                student.analyze(self, False)
+            else:
+                let_list.append(student.letter)
+                
+        final_grade_counts = [let_list.count('A'), let_list.count('B'),
+                              let_list.count('C'),
+                              let_list.count('D'), let_list.count('F')]
+        y = np.array(final_grade_counts)
+        labels = ["A", "B", "C", "D", "F"]
+        print(final_grade_counts)
+        plt.pie(y, labels=labels, autopct='%.2f%%')
+        plt.title('Class Letter Grades')
+        plt.show()
 
 
 # Define menu printing and user selection, validate user input
