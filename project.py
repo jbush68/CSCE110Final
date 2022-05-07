@@ -141,6 +141,23 @@ class ClassSet:
                 print('Invalid UIN, please try again...')
                 self.find_student()
 
+    def class_analysis(self):
+        for student in self.students:
+            if not student.total:
+                student.analyze(self, False)
+
+        class_grades = [student.total for student in self.students]
+
+        grades_list = f"""Total number of students: {self.num_students}
+Minimum score: {min(class_grades)}
+Maximum score: {max(class_grades)}
+Median score: {np.median(class_grades)}
+Mean score: {avg(class_grades)}
+Standard deviation: {np.std(class_grades)}"""
+
+        with open('report.txt', 'w') as class_report:
+            class_report.write(grades_list)
+
     def class_graphs(self):
         let_list = []
 
@@ -224,16 +241,18 @@ def main() -> None:
                 csce_class.populate_class()
                 continue
             case 2:
-                g = str(input('ent uin: '))
-                for student in csce_class.students:
-                    if student.uin == g:
-                        student.analyze(csce_class)
+                analysis_student = csce_class.find_student()
+                analysis_student.analyze(csce_class, True)
+                continue
             case 3:
-                pass
+                chart_student = csce_class.find_student()
+                chart_student.student_graphs()
+                continue
             case 4:
-                pass
+                csce_class.class_analysis()
             case 5:
-                pass
+                csce_class.class_graphs()
+                csce_class.class_pie()
             case 6:
                 return
             case _:
