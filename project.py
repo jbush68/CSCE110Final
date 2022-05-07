@@ -1,4 +1,6 @@
 import csv as csv
+
+import numpy
 import numpy as np
 from matplotlib import pyplot as plt
 from statistics import mean as avg
@@ -51,17 +53,19 @@ class Student:
 
     def student_graphs(self):
         for attr, val in self.__dict__.items():
-            if attr in ['uin', 'project', 'total']:
+            if attr in ['uin', 'project', 'total', 'letter']:
                 continue
 
             attr = str(attr)
             attr = attr.capitalize()
 
-            x = np.arrange(val)
+            x = numpy.arange(len(val))
             width = 0.5
             fig, ax = plt.subplots()
-            ax.set_xtics(x)
-            ax.set_title(attr).set_ylabel("Score").set_xlabel(f'{attr[0:-1]}')
+            ax.set_xticks(x)
+            ax.set_title(attr)
+            ax.set_ylabel("Score")
+            ax.set_xlabel(f'{attr[0:-1]}')
             data = ax.bar(x - width / 2, val, width, label=attr)
             for i in data:
                 height = i.get_height()
@@ -128,18 +132,18 @@ class ClassSet:
         self.students = students
         self.num_students = len(self.students)
 
-    def find_student(self) -> Student:
+    def find_student(self) -> "Student":
         search_uin = str(input('Enter student uin: '))
         if not (search_uin.isnumeric() and len(search_uin) == 10):
             print('Invalid UIN, please try again...')
-            self.find_student()
+            return self.find_student()
         else:
             for student in self.students:
                 if student.uin == search_uin:
                     return student
             else:
                 print('Invalid UIN, please try again...')
-                self.find_student()
+                return self.find_student()
 
     def class_analysis(self):
         for student in self.students:
