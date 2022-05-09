@@ -1,8 +1,9 @@
 import csv as csv
-import numpy
+import os as os
 import numpy as np
 from matplotlib import pyplot as plt
 from statistics import mean as avg
+from warnings import filterwarnings as fw
 from typing import TypedDict
 
 
@@ -130,21 +131,31 @@ class Student:
     def student_graphs(self):
         """Generates various graphs of the student's grades using pyPlot from matplotlib."""
 
+        try:
+            os.mkdir(f'{self.uin}')
+        except FileExistsError:
+            print(f'Student already has graphs printed at folder: "{self.uin}"')
+            return
+
         for attr, val in self.__dict__.items():
             if attr in ['uin', 'project', 'total', 'letter']:
                 continue
 
             attr = str(attr)
             attr = attr.capitalize()
-
-            x = numpy.arange(len(val))
+            x = np.arange(len(val))
+            for i in range(len(x)):
+                x[i] += 1
             width = 0.5
             fig, ax = plt.subplots()
             ax.set_xticks(x)
             ax.set_title(attr)
             ax.set_ylabel("Score")
-            ax.set_xlabel(f'{attr[0:-1]}')
-            data = ax.bar(x - width / 2, val, width, label=attr)
+            if attr == 'Quizzes':
+                ax.set_xlabel(f'Quiz')
+            else:
+                ax.set_xlabel(f'{attr[0:-1]}')
+            data = ax.bar(x, val, width, label=attr)
             for i in data:
                 height = i.get_height()
                 ax.annotate('{}'.format(height),
@@ -153,7 +164,7 @@ class Student:
                             textcoords="offset points",
                             ha='center', va='bottom')
 
-            plt.show()
+            plt.savefig(f"{self.uin}/{attr}_graph.png")
 
 
 class ClassSet:
@@ -236,8 +247,8 @@ Standard deviation: {np.std(class_grades):.2f}"""
         for student in self.students:
             if not student.letter:
                 student.analyze(self, False)
-            else:
-                let_list.append(student.letter)
+
+            let_list.append(student.letter)
 
         final_grade_counts = [let_list.count('A'), let_list.count('B'),
                               let_list.count('C'),
@@ -265,7 +276,7 @@ Standard deviation: {np.std(class_grades):.2f}"""
                         textcoords="offset points",
                         ha='center', va='bottom')
             counter += 1
-        plt.show()
+        plt.savefig('class_charts/class_graphs.png')
 
     def class_pie(self):
         """Generates pie graph of the all instances of `Student.total` in the instance using pyPlot from matplotlib."""
@@ -282,10 +293,9 @@ Standard deviation: {np.std(class_grades):.2f}"""
                               let_list.count('D'), let_list.count('F')]
         y = np.array(final_grade_counts)
         labels = ["A", "B", "C", "D", "F"]
-        print(final_grade_counts)
         plt.pie(y, labels=labels, autopct='%.2f%%')
         plt.title('Class Letter Grades')
-        plt.show()
+        plt.savefig('class_charts/class_pie_chart.png')
 
 
 def menu() -> int:
@@ -297,7 +307,8 @@ def menu() -> int:
     Raises:
         ValueError: Raises value error when the user input cannot be cast to int, signaling an invalid input.
     """
-    print("""*******************Main Menu*****************
+    print("""
+*******************Main Menu*****************
 1. Read CSV file of grades
 2. Generate student report file
 3. Generate student report charts
@@ -306,10 +317,14 @@ def menu() -> int:
 6. Quit
 ************************************************\n""")
     try:
-        return int(input('Enter option: '))
+        opt = str(input('Enter option: '))
+        if opt.lower() == 'q' or opt.lower() == 'quit':
+            return 6
+        else:
+            return int(opt)
     except ValueError:
         print('Invalid input \n')
-        menu()
+        return menu()
 
 
 def main() -> None:
@@ -339,6 +354,11 @@ def main() -> None:
             case 4:
                 csce_class.class_analysis()
             case 5:
+                try:
+                    os.mkdir('class_charts')
+                except FileExistsError:
+                    print('Class has already been analyzed!')
+                    continue
                 csce_class.class_graphs()
                 csce_class.class_pie()
             case 6:
@@ -350,4 +370,5 @@ def main() -> None:
 
 # Call the main function
 if __name__ == "__main__":
+    fw("ignore")
     main()
