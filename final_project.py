@@ -1,3 +1,8 @@
+# File:    final_project.py
+# Author:  Joshua Bush, Austin Byrom
+# Date:    05/09/2022
+# Email:  jbush68@tamu.edu, Austin100028676@tamu.edu
+
 import csv as csv
 import os as os
 import numpy as np
@@ -7,7 +12,6 @@ from warnings import filterwarnings as fw
 from typing import TypedDict
 
 
-# Create custom dictionary class to pass to classroom class
 class StudentDict(TypedDict):
     """StudentDict dictionary definition to enforce data types used as input when creating an instance of `Student`.
 
